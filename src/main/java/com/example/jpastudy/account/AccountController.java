@@ -1,6 +1,9 @@
 package com.example.jpastudy.account;
 
+import com.example.jpastudy.domain.Account;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
@@ -22,6 +25,8 @@ import javax.validation.Valid;
 public class AccountController {
 
 	private final SignUpFormValidator signUpFormValidator;
+	private final AccountRepository accountRepository;
+	private final JavaMailSender javaMailSender;
 
 	/**
 	 * @author : DaEunKim
@@ -48,7 +53,28 @@ public class AccountController {
 			return "account/sign-up";
 		}
 
-		// 가입 처리
+		// 회원 가입 처리
+		Account account = Account.builder()
+				.email(signUpForm.getEmail())
+				.nickname(signUpForm.getNickname())
+				.password(signUpForm.getPassword()) // TODO encoding 해야함
+				.emailVerified(false)
+				.studyCreatedByWeb(true) // 스터디 관련 web을 다 켜놓기
+				.studyEnrollmentResultByWeb(true)
+				.studyUpdatedResultByWeb(true)
+				.build();
+
+		Account newAccount = accountRepository.save(account);
+
+		// email 보내기
+		newAccount.generateEamilCheckToken();
+		SimpleMailMessage mailMessage = new SimpleMailMessage();
+		mailMessage.setTo(newAccount.getEmail());
+		mailMessage.setSubject("회원 가입 인증");
+		mailMessage.setText("/check-email-token?token="+newAccount.getEmailCheckToken()+
+				"&email="+ newAccount.getEmail());
+		javaMailSender.send(mailMessage);
+
 
 		return "redirect:/";
 	}

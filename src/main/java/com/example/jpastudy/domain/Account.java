@@ -4,6 +4,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * @author : DaEunKim
@@ -63,4 +64,8 @@ public class Account {
 	private boolean studyUpdatedResultByEmail; // 스터디 갱신된 정보를 이메일로 받을것인지
 
 	private boolean studyUpdatedResultByWeb; // 웹으로 받을 것인지
+
+	public void generateEamilCheckToken() {
+		this.emailCheckToken = UUID.randomUUID().toString();
+	}
 }
